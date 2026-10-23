@@ -14,6 +14,17 @@ func (c *Conn) GetTrack(media *core.Media, codec *core.Codec) (*core.Receiver, e
 		}
 	}
 
+	// Reutiliza o receptor quando o payload RTP muda,
+	// mas o codec e o tipo de mídia continuam iguais.
+	for _, track := range c.Receivers {
+		if track.Media != nil &&
+			track.Media.Kind == media.Kind &&
+			track.Codec.Name == codec.Name {
+			track.Codec = codec
+			return track, nil
+		}
+	}
+
 	switch c.Mode {
 	case core.ModePassiveConsumer: // backchannel from browser
 		// set codec for consumer recv track so remote peer should send media with this codec
